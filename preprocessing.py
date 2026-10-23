@@ -20,7 +20,9 @@ def make_preprocessor():
     입력으로 주지 않은 열은 버리지만, 입력 계약 감사 자체를 대체하지는 않습니다.
     """
     # TODO D5-07-B1: 위 함수 설명의 입력·반환·검사 조건을 구현하세요.
-    raise NotImplementedError("D5-07-B1를 완성하세요.")
+    return ColumnTransformer([("num", make_numeric(), NUM), ("cat", make_categorical(), CAT)])
+
+    # raise NotImplementedError("D5-07-B1를 완성하세요.")
 
 def make_model():
     """제공: 오늘은 입력 패턴을 사용하지 않는 기준선만 연결합니다."""
