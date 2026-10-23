@@ -29,7 +29,7 @@ def train_and_validate(model,X_train,y_train,X_valid):
     # train만으로 pre 및 model 학습
     model.fit(X_train, y_train)
 
-    # before은 assert_train_state 함수와 같이 valid와의 상태 비교에 사용되는 것 확인
+    # before은 assert_train_state 함수에서 valid·새 입력 transform 후 상태(after)와 비교해 학습 기준이 안 바뀌었는지 확인.
     # if before != after:
     #     raise AssertionError("valid/새 입력 처리 후 학습 상태가 변했습니다.")
     # after=snapshot(model.named_steps["pre"]) 와 비교
