@@ -25,7 +25,35 @@ def train_and_validate(model,X_train,y_train,X_valid):
     모델의 fit은 한 번이며 X_valid에는 transform/predict만 사용합니다.
     """
     # TODO D5-07-B2: 위 함수 설명의 입력·반환·검사 조건을 구현하세요.
-    raise NotImplementedError("D5-07-B2를 완성하세요.")
+
+    # train만으로 pre 및 model 학습
+    model.fit(X_train, y_train)
+
+    # before은 assert_train_state 함수와 같이 valid와의 상태 비교에 사용되는 것 확인
+    # if before != after:
+    #     raise AssertionError("valid/새 입력 처리 후 학습 상태가 변했습니다.")
+    # after=snapshot(model.named_steps["pre"]) 와 비교
+    state_before = snapshot(model.named_steps["pre"])
+
+    # 모델 파이프라인의 전처리 단계만 거친 뒤 반환
+    train_ready = model.named_steps["pre"].transform(X_train)
+
+    # valid_ready 변수 사용되는 코드: 
+    # if train_ready.shape[1]!=valid_ready.shape[1] or valid_ready.shape[1]!=len(names):
+    #     raise ValueError("전처리 출력 열 수가 일치하지 않습니다.")
+    # if not np.isfinite(train_ready).all() or not np.isfinite(valid_ready).all():
+    #     raise ValueError("전처리 출력에 NaN 또는 inf")
+    valid_ready = model.named_steps["pre"].transform(X_valid)
+
+    # validation은 아래와 같이 metrics 구함
+    # metrics={"correct":int((pred==yva.to_numpy()).sum()),"total":len(yva),
+    #     "accuracy":float((pred==yva.to_numpy()).mean()),
+    #     "found_failed":int(((pred==1)&(yva.to_numpy()==1)).sum()),
+    #     "total_failed":int((yva==1).sum())}
+    predictions = model.predict(X_valid)
+
+    return state_before, train_ready, valid_ready, predictions
+    # raise NotImplementedError("D5-07-B2를 완성하세요.")
 
 def predict_new(model,frame):
     """입력 계약 검사 → 학습된 pre 변환 → predict, 정답 y 없이 수행합니다.
