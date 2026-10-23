@@ -1,0 +1,50 @@
+[
+  {
+    "name": "동일 요청 복제",
+    "train_ids": [
+      "A",
+      "B"
+    ],
+    "valid_ids": [
+      "B",
+      "C"
+    ],
+    "feature_at": "2026-10-20T08:00:00Z",
+    "predict_at": "2026-10-20T09:00:00Z",
+    "fit_splits": [
+      "train"
+    ],
+    "selection_split": "valid"
+  },
+  {
+    "name": "미래 통계",
+    "train_ids": [
+      "A"
+    ],
+    "valid_ids": [
+      "B"
+    ],
+    "feature_at": "2026-10-20T10:00:00Z",
+    "predict_at": "2026-10-20T09:00:00Z",
+    "fit_splits": [
+      "train",
+      "valid"
+    ],
+    "selection_split": "valid"
+  },
+  {
+    "name": "반복 test 선택",
+    "train_ids": [
+      "A"
+    ],
+    "valid_ids": [
+      "B"
+    ],
+    "feature_at": "2026-10-20T08:00:00Z",
+    "predict_at": "2026-10-20T09:00:00Z",
+    "fit_splits": [
+      "train"
+    ],
+    "selection_split": "test"
+  }
+]

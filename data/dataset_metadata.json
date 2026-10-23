@@ -1,0 +1,38 @@
+{
+  "source": "Day5 PPT slide 15 speaker notes make_demo_data()",
+  "synthetic": true,
+  "rows": 100,
+  "columns": [
+    "request_id",
+    "input_chars",
+    "allowed_tools",
+    "task_type",
+    "priority",
+    "elapsed_ms",
+    "retry_count",
+    "status",
+    "failed"
+  ],
+  "seed_data": 23,
+  "split_seeds": [
+    42,
+    42
+  ],
+  "split_sizes": [
+    60,
+    20,
+    20
+  ],
+  "sha256": "d67ff13153a36ef4c06ba739bda9ca1b68154d418a4142c52c688fc7181e9128",
+  "class_counts": {
+    "0": 70,
+    "1": 30
+  },
+  "missing_counts": {
+    "input_chars": 6,
+    "allowed_tools": 4,
+    "task_type": 3,
+    "priority": 2
+  },
+  "test_policy": "분할/라벨 무결성·건수 확인만; 학습·변환·예측·점수 계산·후보 선택에 사용하지 않는다."
+}

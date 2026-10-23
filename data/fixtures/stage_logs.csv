@@ -1,0 +1,7 @@
+row_id,request_id,stage,session_id
+1,A,planner,s1
+2,A,worker,s1
+3,B,planner,s2
+4,B,worker,s2
+5,C,planner,s3
+6,C,worker,s3

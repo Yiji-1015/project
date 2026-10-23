@@ -1,0 +1,6 @@
+request_id,input_chars,allowed_tools,task_type,priority,elapsed_ms,retry_count,status,failed
+R001,1549.0,4.0,summary,normal,1994,2,error,1
+R002,1349.0,2.0,summary,low,1799,0,ok,0
+R003,1578.0,4.0,summary,normal,179,0,ok,0
+R004,946.0,,qa,low,1780,0,ok,0
+R001,1549.0,4.0,summary,normal,1994,2,error,1
