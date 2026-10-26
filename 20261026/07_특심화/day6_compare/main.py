@@ -32,7 +32,7 @@ LEVEL='advanced'
 # R026,train,1
 # R074,train,2
 # R067,train,3
-# R005,train,4
+# R005,train,4ㄹ
 # R093,train,5
 # R053,train,6
 

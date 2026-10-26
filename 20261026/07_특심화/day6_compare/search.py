@@ -10,9 +10,20 @@ def search_k(d,candidates=(1,3,5,9,15)):
     회귀/분류는 서로 다른 y와 지표를 사용한다. 조건은 standard,uniform,p=2로 고정한다.
     """
     # TODO D6-07-H4: 바로 위 함수 설명의 입력·반환 계약을 완성하세요.
+    tasks = [('classification', KNeighborsClassifier, d.yc_train, d.yc_valid, 'F1', classification_metrics),
+             ('regression', KNeighborsRegressor, d.yr_train, d.yr_valid, 'RMSE_ms', regression_metrics)]
+    rows=[]
+    for task, Model, y_train, y_valid, metric, score in tasks:
+        for k in candidates:
+            k=validate_k(k, len(d.X_train))
+            model=build_pipeline(Model(n_neighbors=k, weights='uniform', p=2))
+            model.fit(d.X_train, y_train)
+            rows.append({'task': task, 'K': k, 'scale': 'standard', 'weights': 'uniform', 'p': 2, 'metric': metric,
+                         'train_score': score(y_train, model.predict(d.X_train))[metric],
+                         'valid_score': score(y_valid, model.predict(d.X_valid))[metric]})
+    return pd.DataFrame(rows)
 
-
-    raise NotImplementedError("TODO D6-07-H4: 구현 후 다시 실행하세요.")
+    # raise NotImplementedError("TODO D6-07-H4: 구현 후 다시 실행하세요.")
 
 def choose_k(table):
     result={}
