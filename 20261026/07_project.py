@@ -14,32 +14,18 @@ features = ["input_chars", "allowed_tools", "task_type", "priority"]
 X_train = train[features]
 X_valid = valid[features]
 
-print(split)
-#    request_id  split  position
-# 0        R009  train         0
-# 1        R026  train         1
-# 2        R074  train         2
-# 3        R067  train         3
-# 4        R005  train         4
-# ..        ...    ...       ...
-# 95       R080   test        15
-# 96       R036   test        16
-# 97       R004   test        17
-# 98       R066   test        18
-# 99       R090   test        19
-
-print(X_train)
-#             input_chars  allowed_tools task_type priority
-# request_id                                               
-# R009             1412.0            2.0        qa   normal
-# R026              895.0            1.0   summary     high
-# R074              290.0            5.0  research   normal
-# R067             1641.0            1.0  research      low
-# R005                NaN            5.0        qa     high
-# R093              311.0            1.0  research      low
-# R053             1629.0            3.0        qa     high
-# R018                NaN            5.0  research     high
-
+print(train)
+#             input_chars  allowed_tools task_type priority  elapsed_ms  retry_count status  failed
+# request_id                                                                                       
+# R009             1412.0            2.0        qa   normal        2349            2  error       1
+# R026              895.0            1.0   summary     high         138            0     ok       0
+# R074              290.0            5.0  research   normal         885            0     ok       0
+# R067             1641.0            1.0  research      low         694            0     ok       0
+# R005                NaN            5.0        qa     high        1979            1  error       1
+# R093              311.0            1.0  research      low        1545            0     ok       0
+# R053             1629.0            3.0        qa     high        1316            2  error       1
+# R018                NaN            5.0  research     high        1942            0     ok       0
+# R082              908.0            2.0        qa      low        1135            0     ok       0
 
 # test의 ID는 분할표에만 남겨 둡니다. test 입력·정답을 모델에 전달하지 않습니다.
 from sklearn.impute import SimpleImputer
@@ -68,8 +54,8 @@ for name, estimator in [("Dummy", DummyRegressor()), ("Linear", LinearRegression
     model = Pipeline([("pre", clone(pre)), ("model", estimator)])
     # TODO A07r: 회귀 모델을 학습하고 valid 예측을 구하세요.
     # 힌트: 정답 열은 elapsed_ms입니다.
-    pass
-    prediction = None
+    model.fit(X_train, train["elapsed_ms"])
+    prediction = model.predict(X_valid)
     regression_rows.append({"model": name, "scale": "standard",
         "MAE_ms": mean_absolute_error(valid["elapsed_ms"], prediction),
         "RMSE_ms": root_mean_squared_error(valid["elapsed_ms"], prediction)})
@@ -82,8 +68,8 @@ for name, estimator in [("Dummy", DummyClassifier(strategy="most_frequent")),
     model = Pipeline([("pre", clone(pre)), ("model", estimator)])
     # TODO A07c: 분류 모델을 학습하고 valid 예측을 구하세요.
     # 힌트: 정답 열은 failed입니다.
-    pass
-    prediction = None
+    model.fit(X_train, train["failed"])
+    prediction = model.predict(X_valid)
     tn, fp, fn, tp = confusion_matrix(valid["failed"], prediction, labels=[0, 1]).ravel()
     classification_rows.append({"model": name, "scale": "standard",
         "F1": f1_score(valid["failed"], prediction, zero_division=0),
@@ -106,3 +92,14 @@ print("분류 / valid 20건")
 print(classification.round(3).to_string(index=False))
 print("저장: outputs의 비교표 2개와 validation_predictions.csv")
 print("test는 학습·변환·예측·평가하지 않았습니다.")
+
+# 회귀 / valid 20건
+#  model    scale  MAE_ms  RMSE_ms
+#  Dummy standard 541.260  658.745
+# Linear standard 551.797  639.996
+#  KNN15 standard 530.063  641.788
+# 분류 / valid 20건
+#    model    scale    F1  Precision  Recall  FP  FN
+#    Dummy standard 0.000      0.000   0.000   0   6
+# Logistic standard 0.333      0.333   0.333   4   4
+#     KNN3 standard 0.545      0.600   0.500   2   3
