@@ -3,13 +3,34 @@ from pathlib import Path
 import pandas as pd
 
 # 제공: 전날의 분할 소속뿐 아니라 position 순서까지 그대로 읽습니다.
+
+# __file__은 지금 실행 중인 main.py의 경로
 HERE = Path(__file__).resolve().parent
 raw = pd.read_csv(HERE / "data/requests.csv").set_index("request_id")
+
+# RAW에 들어간 파일 목록
+#             input_chars  allowed_tools task_type priority  elapsed_ms  retry_count status  failed
+# request_id                                                                                       
+# R001             1549.0            4.0   summary   normal        1994            2  error       1
+# R002             1349.0            2.0   summary      low        1799            0     ok       0
+# R003             1578.0            4.0   summary   normal         179            0     ok       0
+# R004              946.0            NaN        qa      low        1780            0     ok       0
+# R005                NaN            5.0        qa     high        1979            1  error       1
+# ...                 ...            ...       ...      ...         ...          ...    ...     ...
+# R096             1405.0            4.0  research     high        1003            0     ok       0
+# R097             1522.0            4.0   summary      low        1003            0     ok       0
+# R098              434.0            3.0        qa     high        1120            0     ok       0
+# R099              254.0            1.0        qa     high        1740            0     ok       0
+# R100             1271.0            4.0   summary     high        1135            0     ok       0
+
+# split_manifest.csv은 train, valid, test의 index를 정리해둔 것
 manifest = pd.read_csv(HERE / "data/split_manifest.csv")
 train_ids = manifest.loc[manifest["split"] == "train"].sort_values("position")["request_id"]
 valid_ids = manifest.loc[manifest["split"] == "valid"].sort_values("position")["request_id"]
+
 train = raw.loc[train_ids]
 valid = raw.loc[valid_ids]
+
 FEATURES = ["input_chars", "allowed_tools", "task_type", "priority"]
 X_train, X_valid = train[FEATURES], valid[FEATURES]
 y_train, y_valid = train["failed"], valid["failed"]
@@ -33,16 +54,24 @@ from preprocessing import build_model
 from evaluate import classification_metrics, regression_metrics
 
 # 제공: 후보 순서는 CV 동률일 때도 사용합니다. test·valid를 보고 후보를 더 늘리지 않습니다.
+
+# model = build_model(estimator, scale=scale)에 쓰일 인자들 정의
+# 표준화 여부 True: 거리·계수 기반 모델은 숫자 크기에 민감하므로 표준화
+# 표준화 여부 False: 트리 계열은 크기 비고(분할)만 하므로 스케일링 불필요, Dummy는 입력 안 봄
+
+# 분류 후보: 정답은 실패 여부(failed, 실패=1·성공=0)
 classifiers = [("Dummy", DummyClassifier(strategy="most_frequent"), False),
                ("Logistic", LogisticRegression(C=1, max_iter=1000), True),
                ("KNN3", KNeighborsClassifier(n_neighbors=3), True),
                ("Tree", DecisionTreeClassifier(max_depth=3, min_samples_leaf=3, random_state=42), False),
                ("Forest", RandomForestClassifier(n_estimators=100, max_depth=4, min_samples_leaf=2,
-                                    max_features="sqrt", random_state=42, n_jobs=1), False),
+                                    max_features="sqrt", random_state=42, n_jobs=1), False),  # 트리 100개 투표(배깅), 분할마다 √특성수만 후보로 사용
                ("XGB", XGBClassifier(n_estimators=80, max_depth=2, learning_rate=0.05,
-                  subsample=0.8, colsample_bytree=1.0, reg_lambda=1.0,
-                  objective="binary:logistic", eval_metric="logloss",
+                  subsample=0.8, colsample_bytree=1.0, reg_lambda=1.0,  # L2 규제 1.0
+                  objective="binary:logistic", eval_metric="logloss",   # 이진 분류(실패 확률 출력), 손실=로그손실
                   tree_method="hist", device="cpu", random_state=42, n_jobs=1), False)]
+
+# 회귀 후보: 정답은 실행시간(elapsed_ms)
 regressors = [("Dummy", DummyRegressor(strategy="mean"), False),
               ("Linear", LinearRegression(), True),
               ("KNN15", KNeighborsRegressor(n_neighbors=15), True),
@@ -53,10 +82,12 @@ regressors = [("Dummy", DummyRegressor(strategy="mean"), False),
                   subsample=0.8, colsample_bytree=1.0, reg_lambda=1.0,
                   objective="reg:squarederror", eval_metric="rmse",
                   tree_method="hist", device="cpu", random_state=42, n_jobs=1), False)]
+
 class_folds = list(StratifiedKFold(n_splits=5, shuffle=True, random_state=42).split(X_train, y_train))
 reg_folds = list(KFold(n_splits=5, shuffle=True, random_state=42).split(X_train))
 class_rows, reg_rows, cv_rows, prediction_rows = [], [], [], []
 fitted_class, fitted_reg = {}, {}
+
 for name, estimator, scale in classifiers:
     model = build_model(estimator, scale=scale)
     # 제공: CV에 전처리 전 X와 Pipeline을 전달합니다. fold 내부에서 전처리를 학습합니다.
@@ -82,7 +113,7 @@ for name, estimator, scale in regressors:
     scores = -cross_val_score(model, X_train, train["elapsed_ms"], cv=reg_folds,
                               scoring="neg_root_mean_squared_error", n_jobs=1)
     # TODO C07b: 회귀 후보를 실행시간 정답으로 학습하고 valid를 예측하세요.
-    model.fit(X_train, y_train)
+    model.fit(X_train, train["elapsed_ms"])
     prediction = model.predict(X_valid)
     # TODO 끝
     reg_rows.append({"model": name, "CV_RMSE_ms": scores.mean(), "CV_std_ms": scores.std(),
