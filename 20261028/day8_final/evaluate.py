@@ -4,8 +4,15 @@ from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, r
 def summarize(y, prediction, probability):
     """판정은 F1에, 연속 점수는 AUC에 사용합니다. 사람의 보고서 판단은 자동 채점하지 않습니다."""
     tn, fp, fn, tp = confusion_matrix(y, prediction, labels=[0, 1]).ravel()
+
     # TODO H07m: F1은 prediction으로, ROC-AUC는 probability로 계산하세요.
-    f1 = auc = 0.0
+
+    # F1은 0/1 판정 결과로 계산하는 지표라 임계값을 거친 prediction을 넣습니다.
+    # ROC-AUC는 임계값과 무관하게 순위를 보는 지표라 연속 점수인 probability를 넣습니다.
+    # zero_division=0은 양성 예측이 하나도 없을 때 경고 대신 0을 돌려주기 위한 설정입니다.
+    f1 = f1_score(y, prediction, zero_division=0)
+    auc = roc_auc_score(y, probability)
+    
     # TODO 끝
     return {"n": len(y), "Accuracy": accuracy_score(y, prediction),
             "Precision": precision_score(y, prediction, zero_division=0),

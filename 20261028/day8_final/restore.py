@@ -15,7 +15,11 @@ model = joblib.load(OUT / "pipeline.joblib")
 X = raw.loc[expected["request_id"], plan["features"]]
 positive_column = model.classes_.tolist().index(1)
 # TODO H08: 복원 모델로 같은 ID 순서의 실패 확률을 구하세요. fit은 호출하지 않습니다.
-probability = np.zeros(len(X))
+# joblib.load로 꺼낸 model은 main.py에서 80건으로 학습이 끝난 상태 그대로입니다.
+# 여기서 fit을 다시 하면 대체 통계·계수가 바뀌어 main.py 결과와 달라지므로 predict_proba만 호출합니다.
+# X는 test_predictions.csv의 request_id 순서대로 만들어 두었으니 행 순서가 그대로 대조됩니다.
+# Pipeline에 add_features 단계가 들어 있어 features.py가 같은 폴더에 있어야 복원이 됩니다.
+probability = model.predict_proba(X)[:, positive_column]
 # TODO 끝
 prediction = (probability > plan["threshold"]).astype(int)
 print("ID 순서 동일:", X.index.tolist() == expected["request_id"].tolist())

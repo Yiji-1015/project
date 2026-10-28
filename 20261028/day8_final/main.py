@@ -26,14 +26,28 @@ X_develop = develop[plan["features"]]
 model = clone(CANDIDATES[plan["selected"]])
 model["model"].set_params(**plan["model_params"])
 # TODO H07a: 확정 모델을 개발80의 입력과 정답으로 학습하세요.
-pass
+# plan.py의 CV 모델은 train60을 5-fold로 나눠 매번 48건만 보고 fit한 임시 모델이며,
+# cross_val_score가 끝나면 사라지고 "Logistic_FE가 가장 좋다"는 선택 결과만 남습니다.
+# 선택이 끝났으니 valid20을 따로 남겨둘 이유가 없어 train60+valid20=80건을 전부 학습에 씁니다.
+# 48건 → 80건으로 데이터가 늘어나므로 clone한 새 Pipeline을 처음부터 다시 fit합니다.
+# Pipeline 전체를 fit하므로 add_features 파생 특성, imputer의 median, scaler의 평균/표준편차,
+# 로지스틱 계수가 모두 80건 기준으로 새로 계산됩니다. train60 때와 달라지는 것이 정상입니다.
+# test20은 ID만 알고 입력·정답은 아직 모델에 주지 않습니다.
+model.fit(X_develop, develop["failed"])
 # TODO 끝
 # 설정 저장·개발 학습 후에만 test 입력과 정답을 선택합니다.
 test = raw.loc[plan["test_ids"]]
 X_test = test[plan["features"]]
 positive_column = model.classes_.tolist().index(1)
 # TODO H07b: 실패1의 확률을 구하세요. Feature Engineering도 저장될 Pipeline 안에서 적용됩니다.
-probability = np.zeros(len(test))
+# 여기서 처음으로 test20 입력을 모델에 넣습니다. 학습이 끝난 뒤라 점수가 "처음 보는 데이터" 기준이 됩니다.
+# predict_proba는 (20, 2) 배열을 돌려주며 각 행은 [정상0 확률, 실패1 확률]입니다.
+# classes_ 순서가 항상 [0, 1]이라는 보장이 없으므로 위에서 구한 positive_column으로 실패1 열을 꺼냅니다.
+# 결과는 0~1 사이 연속값(probability)이고, 아래 줄에서 threshold 0.5를 넘는지로 0/1 판정(prediction)을 만듭니다.
+# probability는 ROC_AUC 계산에, prediction은 F1·Accuracy·혼동행렬 계산에 각각 쓰입니다.
+# X_test는 원본 4열 그대로 넣습니다. 파생 특성은 Pipeline 안 add_features 단계가 자동으로 만들어
+# 학습 때와 같은 방식이 보장되고, 저장될 pipeline.joblib에도 그 단계가 포함됩니다.
+probability = model.predict_proba(X_test)[:, positive_column]
 # TODO 끝
 prediction = (probability > plan["threshold"]).astype(int)
 metrics = summarize(test["failed"], prediction, probability)

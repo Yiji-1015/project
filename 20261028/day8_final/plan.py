@@ -30,8 +30,13 @@ else:
     for name, prototype in CANDIDATES.items():
         model = clone(prototype)
         # TODO H06: 각 후보 Pipeline을 동일 train 5-fold로 비교하세요. 미리 전체 train을 변환하지 않습니다.
-        scores = np.zeros(5)
+
+        # 전처리가 포함된 Pipeline 전체를 넘기므로 fold마다 train 부분으로만 imputer·scaler가 fit됩니다.
+        # 미리 변환한 X가 아니라 원본 X_train을 주어야 검증 fold 정보가 학습 통계에 새지 않습니다.
+        # folds를 고정해 7개 후보가 똑같은 분할에서 F1로 비교되게 합니다.
+        scores = cross_val_score(model, X_train, y_train, cv=folds, scoring="f1")
         # TODO 끝
+        
         model.fit(X_train, y_train)
         rows.append({"model": name, "CV_F1": scores.mean(), "CV_std": scores.std(),
                      "valid_F1": f1_score(y_valid, model.predict(X_valid), zero_division=0)})
