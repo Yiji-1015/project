@@ -6,4 +6,4 @@ __pycache__/
 .day5-stage-*/
 .day5-backup-*/
 !20261030/outputs/
-/outputs
+outputs/
