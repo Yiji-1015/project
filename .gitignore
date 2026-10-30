@@ -3,6 +3,5 @@ __pycache__/
 *.pyc
 .env
 *.joblib
-outputs/
 .day5-stage-*/
 .day5-backup-*/
