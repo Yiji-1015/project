@@ -144,6 +144,9 @@ for config in configs:
     plt.savefig(out / f"07_{name}_curves.png", dpi=150)
     plt.close()
     print(name, "best epoch:", int(best["epoch"]), "best valid loss:", round(best["valid_loss"], 6))
+
 result = pd.DataFrame(summary)
 result.to_csv(out / "07_comparison.csv", index=False)
 print("생성: outputs/07_*.csv, *.png / test 미사용")
+
+# best valid loss는 adamw가 0.01656(38 epoch, valid acc 1.0)으로 가장 낮았다. adamw_dropout은 0.033904(40 epoch), sgd는 0.428053(40 epoch)이었다. adamw는 마지막 valid loss 0.0202와 best의 차이가 0.0037로 작아 40 epoch 안에서 거의 수렴했다.
