@@ -78,9 +78,20 @@ valid 각 클래스 3장씩
 | **Head + Weight** | Class Weight | 771개 | 7 | 0.8333 | 0.8300 | 0.7667 |
 - **해석**: 단순 모델 용량을 키우는 Partial Fine-tuning보다, 손실 함수에서 소수 클래스 기여도를 직접 보정해 준 **Head + Class Weight** 전략이 **Macro F1(0.8300)**과 **triangle Recall(0.7667)** 측면에서 가장 균형 잡힌 우수한 성능을 기록했습니다.
 
+
+## 단계별 산출물 구성 (Artifacts)
+실행 파이프라인(`07_project_3.py`)은 학습 종료 후 다음 산출물들을 `outputs/` 폴더에 자동으로 생성합니다.
+* `metrics.csv` / `history.csv`: 전체 실험 군별 지표 요약표 및 에폭별 Valid Loss 추이
+* `predictions.csv`: 검증 셋 전체 샘플의 실제값, 예측값, 모델 확신도(Confidence) 기록표
+* `confusion.csv`: 실제 클래스 $\times$ 예측 클래스 교차 행렬 (Confusion Matrix)
+* `project_error_*.png`: 모델이 오분류한 대표 이미지 타일 모음 (최대 8장)
+* `project_cam.png`: 첫 번째 오답 샘플에 대한 Grad-CAM 히트맵 오버레이 ($256 \times 256$)
+
+
 ## Learning Curve
 
-!image.png
+<img width="1050" height="600" alt="image" src="https://github.com/user-attachments/assets/a1a46ab0-0ee6-4e54-a1ae-b1ff4e6f9272" />
+
 
 ### Epoch 8까지 했을 때
 
@@ -94,9 +105,10 @@ valid 각 클래스 3장씩
 - macro_f1: 1.0
 - best epoch: 16
 
-### Grad CAM
+## Grad CAM
 
-!image.png
+<img width="256" height="256" alt="image" src="https://github.com/user-attachments/assets/c72568c2-9712-42a5-8f37-a29300843a4b" />
+
 
 이미지의 왼쪽 아래 부분이 circle 클래스 점수를 높이는 데 기여한 것으로 판단됩니다.
 
@@ -108,6 +120,7 @@ valid 각 클래스 3장씩
     
 - **Head + Class Weight** 전략이 **Macro F1(0.8300)**과 **triangle Recall(0.7667)** 측면에서 가장 균형 잡힌 우수한 성능을 기록
 
-# 한계
 
-데이터 부족
+## 한계점 및 향후 개선 과제 (Limitations & Future Work)
+1. **도메인 확장성 한계**: 본 실험은 제어된 합성 도형 데이터를 사용했으므로, 조명 변화, 잡음, 복잡한 배경이 존재하는 실제 자연 이미지(Natural Images) 환경에서도 동일한 가중치/샘플러 효과가 유지되는지 추가 검증이 필요합니다.
+2. **소표본 데이터의 과적합 위험**: Partial Fine-tuning 시 일부 상위 층을 열었을 때 데이터가 부족하면 쉽게 과적합(Overfitting) 조짐이 나타날 수 있으므로, 향후 데이터 증강(Data Augmentation) 파이프라인과의 결합 실험이 요구됩니다.
