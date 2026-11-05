@@ -1,0 +1,8 @@
+{
+  "accuracy": 1.0,
+  "macro_f1": 1.0,
+  "best_epoch": 16,
+  "valid_n": 9,
+  "source": "synthetic_source_pretraining",
+  "test_used": false
+}
